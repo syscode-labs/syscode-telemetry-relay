@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>syscode-telemetry-relay</Name>
+  <Repository>grafana/alloy:latest</Repository>
+  <Registry>https://hub.docker.com/r/grafana/alloy</Registry>
+  <Network>none</Network>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/syscode-labs/syscode-telemetry-relay</Support>
+  <Project>https://github.com/syscode-labs/syscode-telemetry-relay</Project>
+  <Overview>
+    Grafana Alloy OTLP forwarder. Receives OTLP metrics/logs/traces and forwards
+    them to Grafana Cloud. Install the Tailscale sidecar FIRST, then this
+    container uses its network namespace (ports are published by the sidecar).
+    Place config.alloy at the host path below before starting (copy it from the
+    repo). The ports for OTLP are published by the tailscale container, not here.
+  </Overview>
+  <Category>Network:Other Tools:Utilities</Category>
+  <Icon>https://raw.githubusercontent.com/grafana/alloy/main/docs/sources/assets/logo_alloy_dark.svg</Icon>
+  <ExtraParams>--network=container:syscode-telemetry-relay-tailscale</ExtraParams>
+  <PostArgs>run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy</PostArgs>
+  <Config Name="GC_OTLP_ENDPOINT" Target="GC_OTLP_ENDPOINT" Default="https://otlp-gateway-prod-eu-west-2.grafana.net/otlp" Description="Grafana Cloud OTLP endpoint (include /otlp)" Type="Variable" Display="always" Required="true" Mask="false"></Config>
+  <Config Name="GC_INSTANCE_ID" Target="GC_INSTANCE_ID" Default="" Description="Grafana Cloud instance/stack ID (username)" Type="Variable" Display="always" Required="true" Mask="false"></Config>
+  <Config Name="GC_API_TOKEN" Target="GC_API_TOKEN" Default="" Description="Grafana Cloud API token / access policy token (password)" Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="config.alloy" Target="/etc/alloy/config.alloy" Default="/mnt/user/appdata/syscode-telemetry-relay/config.alloy" Mode="ro" Description="Alloy config file (copy from the repo)" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/syscode-telemetry-relay/config.alloy</Config>
+</Container>

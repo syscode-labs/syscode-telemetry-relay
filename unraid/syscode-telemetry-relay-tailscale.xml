@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>syscode-telemetry-relay-tailscale</Name>
+  <Repository>tailscale/tailscale:latest</Repository>
+  <Registry>https://hub.docker.com/r/tailscale/tailscale</Registry>
+  <Network>bridge</Network>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/syscode-labs/syscode-telemetry-relay</Support>
+  <Project>https://github.com/syscode-labs/syscode-telemetry-relay</Project>
+  <Overview>
+    Tailscale sidecar for syscode-telemetry-relay. Provides the tailnet
+    interface and publishes the OTLP ports (4317/4318) to the LAN. Install this
+    FIRST, then install the Alloy relay container with network set to
+    "container:syscode-telemetry-relay-tailscale".
+  </Overview>
+  <Category>Network:Other Tools:Utilities</Category>
+  <Icon>https://raw.githubusercontent.com/tailscale/tailscale/main/docs/logo.png</Icon>
+  <ExtraParams>--cap-add=NET_ADMIN --device=/dev/net/tun</ExtraParams>
+  <Config Name="OTLP gRPC port" Target="4317" Default="4317" Mode="tcp" Description="OTLP gRPC receiver (LAN access)" Type="Port" Display="always" Required="true" Mask="false">4317</Config>
+  <Config Name="OTLP HTTP port" Target="4318" Default="4318" Mode="tcp" Description="OTLP HTTP receiver (LAN access)" Type="Port" Display="always" Required="true" Mask="false">4318</Config>
+  <Config Name="TS_AUTHKEY" Target="TS_AUTHKEY" Default="" Description="Tailscale auth key (reusable; optionally ephemeral)" Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="TS_HOSTNAME" Target="TS_HOSTNAME" Default="telemetry-relay" Description="Hostname on the tailnet (MagicDNS)" Type="Variable" Display="always" Required="true" Mask="false">telemetry-relay</Config>
+  <Config Name="TS_STATE_DIR" Target="TS_STATE_DIR" Default="/var/lib/tailscale" Description="Tailscale state directory (do not change)" Type="Variable" Display="advanced" Required="true" Mask="false">/var/lib/tailscale</Config>
+  <Config Name="TS_USERSPACE" Target="TS_USERSPACE" Default="false" Description="Use kernel networking (requires NET_ADMIN + tun)" Type="Variable" Display="advanced" Required="true" Mask="false">false</Config>
+  <Config Name="TS_EXTRA_ARGS" Target="TS_EXTRA_ARGS" Default="--accept-dns=false" Description="Extra tailscaled/up args" Type="Variable" Display="advanced" Required="false" Mask="false">--accept-dns=false</Config>
+  <Config Name="State" Target="/var/lib/tailscale" Default="/mnt/user/appdata/syscode-telemetry-relay/tailscale" Mode="rw" Description="Persistent Tailscale state" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/syscode-telemetry-relay/tailscale</Config>
+</Container>

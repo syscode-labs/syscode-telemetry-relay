@@ -1,0 +1,39 @@
+services:
+  # Tailscale sidecar: provides the tailnet interface AND publishes the OTLP
+  # ports to the LAN. Alloy shares this container's network namespace, so it is
+  # reachable both over the tailnet (MagicDNS) and the LAN (LAN_BIND_IP).
+  tailscale:
+    image: tailscale/tailscale:latest
+    hostname: ${TS_HOSTNAME:-telemetry-relay}
+    environment:
+      TS_AUTHKEY: ${TS_AUTHKEY:?set TS_AUTHKEY in .env}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: "false"
+      TS_EXTRA_ARGS: --accept-dns=false
+    volumes:
+      - tailscale-state:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      # LAN access. Bind to a specific host IP via LAN_BIND_IP, or 0.0.0.0 for all.
+      - "${LAN_BIND_IP:-0.0.0.0}:4317:4317" # OTLP gRPC
+      - "${LAN_BIND_IP:-0.0.0.0}:4318:4318" # OTLP HTTP
+    restart: unless-stopped
+
+  alloy:
+    image: grafana/alloy:latest
+    network_mode: service:tailscale
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - /etc/alloy/config.alloy
+    env_file: .env
+    volumes:
+      - ./config.alloy:/etc/alloy/config.alloy:ro
+    depends_on:
+      - tailscale
+    restart: unless-stopped
+
+volumes:
+  tailscale-state:

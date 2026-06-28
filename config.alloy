@@ -1,0 +1,44 @@
+// syscode-telemetry-relay — Grafana Alloy config
+// Receives OTLP (gRPC + HTTP) from any source on the LAN/tailnet and
+// forwards metrics, logs and traces to Grafana Cloud over OTLP/HTTP.
+//
+// Endpoints listen on 0.0.0.0 inside the container; LAN/tailnet exposure
+// is controlled by the tailscale sidecar + docker port publishing, not here.
+
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+    logs    = [otelcol.processor.batch.default.input]
+    traces  = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.otlphttp.grafanacloud.input]
+    logs    = [otelcol.exporter.otlphttp.grafanacloud.input]
+    traces  = [otelcol.exporter.otlphttp.grafanacloud.input]
+  }
+}
+
+// Basic auth: username = Grafana Cloud instance/stack ID, password = API token.
+otelcol.auth.basic "grafanacloud" {
+  username = sys.env("GC_INSTANCE_ID")
+  password = sys.env("GC_API_TOKEN")
+}
+
+otelcol.exporter.otlphttp "grafanacloud" {
+  client {
+    // e.g. https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+    endpoint = sys.env("GC_OTLP_ENDPOINT")
+    auth     = otelcol.auth.basic.grafanacloud.handler
+  }
+}
