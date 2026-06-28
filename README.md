@@ -117,11 +117,15 @@ See `examples/claude-code.env`. Key ones: `CLAUDE_CODE_ENABLE_TELEMETRY=1`, `OTE
 
 ### Unraid
 
-Two Community Applications templates in `unraid/`:
+Two CA-format templates in `unraid/`. Install as **private user templates** — no need to publish to Community Applications.
 
-1. Install `syscode-telemetry-relay-tailscale` first (the sidecar). Set `TS_AUTHKEY` and the `4317`/`4318` ports.
-2. Copy `config.alloy` to `/mnt/user/appdata/syscode-telemetry-relay/config.alloy`.
-3. Install `syscode-telemetry-relay` (Alloy). Its network is already set to `container:syscode-telemetry-relay-tailscale`, so it shares the sidecar's network; set the three `GC_*` variables.
+1. **Place the templates** — copy both XMLs to `/boot/config/plugins/dockerMan/templates-user/` on the Unraid box (via SMB `flash` share or SSH). They then appear under **Docker → Add Container → Template → User templates**.
+2. **Place the config** — copy `config.alloy` to `/mnt/user/appdata/syscode-telemetry-relay/config.alloy`.
+3. **Sidecar first** — Add Container → `syscode-telemetry-relay-tailscale`. Set `TS_AUTHKEY` (reusable, non-ephemeral) and the `4317`/`4318` host ports. Start it; confirm it shows in your Tailscale admin console.
+4. **Relay** — Add Container → `syscode-telemetry-relay`. Its network is preset to `container:syscode-telemetry-relay-tailscale`. Set the three `GC_*` variables. Start it.
+5. **Verify** — relay logs show no export errors; `alloy_build_info` appears in Grafana Cloud within a minute.
+
+Ports are published by the tailscale container, not the relay (shared netns).
 
 ### Dashboard
 
