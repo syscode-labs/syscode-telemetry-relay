@@ -3,7 +3,7 @@ services:
   # ports to the LAN. Alloy shares this container's network namespace, so it is
   # reachable both over the tailnet (MagicDNS) and the LAN (LAN_BIND_IP).
   tailscale:
-    image: tailscale/tailscale:v1.98.5
+    image: tailscale/tailscale:v1.98.4
     hostname: ${TS_HOSTNAME:-telemetry-relay}
     environment:
       TS_AUTHKEY: ${TS_AUTHKEY:?set TS_AUTHKEY in .env}
