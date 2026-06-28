@@ -1,0 +1,26 @@
+# mise tasks for syscode-telemetry-relay — run with `mise run <task>` or `mise <task>`
+# https://mise.jdx.dev
+
+[tasks.up]
+description = "Start the relay (detached)"
+run = "docker compose up -d"
+
+[tasks.down]
+description = "Stop the relay"
+run = "docker compose down"
+
+[tasks.logs]
+description = "Tail relay logs"
+run = "docker compose logs -f"
+
+[tasks.restart-alloy]
+description = "Restart Alloy after touching the tailscale container (shared netns)"
+run = "docker compose restart alloy"
+
+[tasks.update]
+description = "Pull pinned images and recreate"
+run = "docker compose pull && docker compose up -d"
+
+[tasks.check]
+description = "Validate compose + config without real secrets"
+run = "docker compose --env-file .env.example config -q && echo OK"

@@ -28,7 +28,10 @@ services:
       - run
       - --server.http.listen-addr=0.0.0.0:12345
       - /etc/alloy/config.alloy
-    env_file: .env
+    environment:
+      GC_OTLP_ENDPOINT: ${GC_OTLP_ENDPOINT:?set GC_OTLP_ENDPOINT in .env}
+      GC_INSTANCE_ID: ${GC_INSTANCE_ID:?set GC_INSTANCE_ID in .env}
+      GC_API_TOKEN: ${GC_API_TOKEN:?set GC_API_TOKEN in .env}
     volumes:
       - ./config.alloy:/etc/alloy/config.alloy:ro
     depends_on:

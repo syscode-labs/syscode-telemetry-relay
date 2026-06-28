@@ -51,6 +51,8 @@ docker compose logs -f      # watch
 docker compose pull && docker compose up -d   # update images
 ```
 
+Or with [mise](https://mise.jdx.dev): `mise run up` / `down` / `logs` / `update` / `restart-alloy` / `check` (see `mise.toml`).
+
 Add a new client by sourcing `examples/claude-code.env` (or setting the equivalent `OTEL_*` vars) on that machine, pointing at the relay. No relay change needed — it accepts any OTLP source.
 
 To check what the relay is doing, the Alloy admin UI is on port `12345` (reachable on the tailnet / LAN host).
@@ -120,6 +122,14 @@ Two Community Applications templates in `unraid/`:
 1. Install `syscode-telemetry-relay-tailscale` first (the sidecar). Set `TS_AUTHKEY` and the `4317`/`4318` ports.
 2. Copy `config.alloy` to `/mnt/user/appdata/syscode-telemetry-relay/config.alloy`.
 3. Install `syscode-telemetry-relay` (Alloy). Its network is already set to `container:syscode-telemetry-relay-tailscale`, so it shares the sidecar's network; set the three `GC_*` variables.
+
+### Dashboard
+
+`dashboards/claude-code.json` is a starter Grafana dashboard for Claude Code usage (cost, tokens by type/model, lines of code, edit decisions, plus a relay-heartbeat panel). Import it in Grafana Cloud: **Dashboards → New → Import → Upload JSON**, then pick your Prometheus data source.
+
+Panel queries match metric names by regex (`{__name__=~"claude_code_token_usage.*"}`) on purpose: depending on your Grafana Cloud OTLP suffix setting, the series may arrive as `claude_code_token_usage`, `..._total`, or with a unit suffix. The regex makes the dashboard work either way. After your first data lands, run `count({__name__=~"claude_code_.*"}) by (__name__)` in Explore to see the exact names.
+
+The heartbeat panel uses the relay's own `alloy_build_info`, which is present whenever forwarding works — independent of any client activity.
 
 ### Operating notes
 
