@@ -69,7 +69,23 @@ Catch it with one Grafana Cloud alert rule:
 
 Client metrics (e.g. Claude Code token counts) are **not** a usable heartbeat — their absence just means nobody ran a client. Always alert on the relay's own `alloy_*` series.
 
-**Contact point:** start with a Telegram bot contact point (planned first channel); Slack or Discord can be added the same way later.
+### Telegram contact point
+
+Grafana Cloud has a built-in Telegram contact point — no bot service to host, just a bot token and a chat ID.
+
+1. **Create a bot:** message [@BotFather](https://t.me/BotFather) → `/newbot` → copy the token (`123456:ABC...`).
+2. **Pick where alerts go:**
+   - DM: message your new bot once (say `hi`), or
+   - Group: add the bot to a group and post a message there.
+3. **Get the chat ID:**
+   ```bash
+   curl -s "https://api.telegram.org/bot<TOKEN>/getUpdates" | jq '.result[].message.chat.id'
+   ```
+   DMs are positive IDs; groups are negative (e.g. `-1001234567890`).
+4. **Add the contact point in Grafana Cloud:** **Alerting → Contact points → Add → Telegram**, paste the **Bot Token** and **Chat ID**, test it.
+5. Attach this contact point to the deadman alert rule above (step 5).
+
+Slack and Discord are the same flow later — add another contact point (Grafana has native integrations for both) and either swap it on the rule or add it to a notification policy.
 
 <details>
 <summary><strong>Reference</strong></summary>
