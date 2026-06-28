@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>syscode-telemetry-relay-tailscale</Name>
-  <Repository>tailscale/tailscale:latest</Repository>
+  <Repository>tailscale/tailscale:v1.98.5</Repository>
   <Registry>https://hub.docker.com/r/tailscale/tailscale</Registry>
   <Network>bridge</Network>
   <Privileged>false</Privileged>
@@ -18,7 +18,7 @@
   <ExtraParams>--cap-add=NET_ADMIN --device=/dev/net/tun</ExtraParams>
   <Config Name="OTLP gRPC port" Target="4317" Default="4317" Mode="tcp" Description="OTLP gRPC receiver (LAN access)" Type="Port" Display="always" Required="true" Mask="false">4317</Config>
   <Config Name="OTLP HTTP port" Target="4318" Default="4318" Mode="tcp" Description="OTLP HTTP receiver (LAN access)" Type="Port" Display="always" Required="true" Mask="false">4318</Config>
-  <Config Name="TS_AUTHKEY" Target="TS_AUTHKEY" Default="" Description="Tailscale auth key (reusable; optionally ephemeral)" Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="TS_AUTHKEY" Target="TS_AUTHKEY" Default="" Description="Tailscale auth key. Use a REUSABLE, NON-EPHEMERAL key (ephemeral keys make the node rejoin as telemetry-relay-1 and break clients)." Type="Variable" Display="always" Required="true" Mask="true"></Config>
   <Config Name="TS_HOSTNAME" Target="TS_HOSTNAME" Default="telemetry-relay" Description="Hostname on the tailnet (MagicDNS)" Type="Variable" Display="always" Required="true" Mask="false">telemetry-relay</Config>
   <Config Name="TS_STATE_DIR" Target="TS_STATE_DIR" Default="/var/lib/tailscale" Description="Tailscale state directory (do not change)" Type="Variable" Display="advanced" Required="true" Mask="false">/var/lib/tailscale</Config>
   <Config Name="TS_USERSPACE" Target="TS_USERSPACE" Default="false" Description="Use kernel networking (requires NET_ADMIN + tun)" Type="Variable" Display="advanced" Required="true" Mask="false">false</Config>

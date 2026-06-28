@@ -55,6 +55,22 @@ Add a new client by sourcing `examples/claude-code.env` (or setting the equivale
 
 To check what the relay is doing, the Alloy admin UI is on port `12345` (reachable on the tailnet / LAN host).
 
+## Monitoring & alerting (deadman)
+
+The relay scrapes its own internal metrics every 60s and ships them through the same pipeline to Grafana Cloud. This is a heartbeat: if forwarding stops for **any** reason — the tailscale container restarted (see Operating notes), the box died, the token was revoked, or Grafana Cloud is unreachable — the heartbeat stops too.
+
+Catch it with one Grafana Cloud alert rule:
+
+1. **Alerting → Alert rules → New** (Grafana-managed, Prometheus/Mimir data source).
+2. Query: `alloy_build_info` (any always-present `alloy_*` series works).
+3. Set **No Data** and **Error** states to **Alerting**.
+4. Evaluate every `1m`, pending period `5m`.
+5. Attach a contact point.
+
+Client metrics (e.g. Claude Code token counts) are **not** a usable heartbeat — their absence just means nobody ran a client. Always alert on the relay's own `alloy_*` series.
+
+**Contact point:** start with a Telegram bot contact point (planned first channel); Slack or Discord can be added the same way later.
+
 <details>
 <summary><strong>Reference</strong></summary>
 
@@ -65,7 +81,7 @@ To check what the relay is doing, the Alloy admin UI is on port `12345` (reachab
 | `GC_OTLP_ENDPOINT` | Grafana Cloud OTLP gateway URL, including the `/otlp` suffix |
 | `GC_INSTANCE_ID` | Grafana Cloud instance/stack ID (basic-auth username) |
 | `GC_API_TOKEN` | Grafana Cloud API / access-policy token (basic-auth password) |
-| `TS_AUTHKEY` | Tailscale auth key |
+| `TS_AUTHKEY` | Tailscale auth key — **reusable, non-ephemeral** (see Operating notes) |
 | `TS_HOSTNAME` | Relay hostname on the tailnet (default `telemetry-relay`) |
 | `LAN_BIND_IP` | Host IP to publish OTLP ports on (default `0.0.0.0`) |
 
@@ -88,6 +104,11 @@ Two Community Applications templates in `unraid/`:
 1. Install `syscode-telemetry-relay-tailscale` first (the sidecar). Set `TS_AUTHKEY` and the `4317`/`4318` ports.
 2. Copy `config.alloy` to `/mnt/user/appdata/syscode-telemetry-relay/config.alloy`.
 3. Install `syscode-telemetry-relay` (Alloy). Its network is already set to `container:syscode-telemetry-relay-tailscale`, so it shares the sidecar's network; set the three `GC_*` variables.
+
+### Operating notes
+
+- **Restarting/updating Tailscale restarts Alloy.** Alloy shares the tailscale container's network namespace, so if the tailscale container is recreated (image bump, crash, `compose pull`), Alloy keeps running but its network goes dead and it silently stops forwarding. After touching the tailscale container, run `docker compose restart alloy`. The deadman alert above will also catch it if you forget.
+- **Use a reusable, non-ephemeral Tailscale key.** An ephemeral key removes the node when it goes offline; it rejoins as `telemetry-relay-1` and every client pointing at `telemetry-relay` breaks. The state volume persists the node identity across normal restarts.
 
 ### LAN-only (no Tailscale)
 

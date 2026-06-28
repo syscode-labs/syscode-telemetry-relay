@@ -4,6 +4,8 @@
 //
 // Endpoints listen on 0.0.0.0 inside the container; LAN/tailnet exposure
 // is controlled by the tailscale sidecar + docker port publishing, not here.
+//
+// Pipeline: receivers -> memory_limiter -> batch -> otlphttp(Grafana Cloud)
 
 otelcol.receiver.otlp "default" {
   grpc {
@@ -13,6 +15,36 @@ otelcol.receiver.otlp "default" {
   http {
     endpoint = "0.0.0.0:4318"
   }
+
+  output {
+    metrics = [otelcol.processor.memory_limiter.default.input]
+    logs    = [otelcol.processor.memory_limiter.default.input]
+    traces  = [otelcol.processor.memory_limiter.default.input]
+  }
+}
+
+// Deadman heartbeat: scrape Alloy's own internal metrics and ship them through
+// the SAME pipeline to Grafana Cloud. If forwarding breaks for any reason
+// (netns down, box dead, token revoked, cloud unreachable) this stream stops,
+// so a "No Data" alert on alloy_build_info in Grafana Cloud fires. See README.
+prometheus.scrape "self" {
+  targets         = [{ "__address__" = "127.0.0.1:12345" }]
+  scrape_interval = "60s"
+  forward_to      = [otelcol.receiver.prometheus.self.receiver]
+}
+
+otelcol.receiver.prometheus "self" {
+  output {
+    metrics = [otelcol.processor.memory_limiter.default.input]
+  }
+}
+
+// Guards relay RAM if a client floods it. limit is the hard ceiling — keep it
+// below the container's memory limit.
+// ponytail: 150MiB fits a forwarder; raise it if you cap container memory higher.
+otelcol.processor.memory_limiter "default" {
+  check_interval = "1s"
+  limit          = "150MiB"
 
   output {
     metrics = [otelcol.processor.batch.default.input]

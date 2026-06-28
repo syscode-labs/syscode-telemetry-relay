@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>syscode-telemetry-relay</Name>
-  <Repository>grafana/alloy:latest</Repository>
+  <Repository>grafana/alloy:v1.17.0</Repository>
   <Registry>https://hub.docker.com/r/grafana/alloy</Registry>
   <Network>none</Network>
   <Privileged>false</Privileged>
