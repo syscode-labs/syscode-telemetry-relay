@@ -138,6 +138,49 @@
       "targets": [
         { "refId": "A", "expr": "sum by (decision) (increase({__name__=~\"claude_code_code_edit_tool_decision.*\"}[$__interval]))", "legendFormat": "{{decision}}" }
       ]
+    },
+    {
+      "id": 20,
+      "type": "row",
+      "title": "Relay health",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "Points sent to Grafana Cloud (rate)",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 29 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "cps" } },
+      "targets": [
+        { "refId": "A", "expr": "sum by (data_type) (rate(otelcol_exporter_sent_metric_points_total{exporter=~\".*grafanacloud.*\"}[$__rate_interval]))", "legendFormat": "metrics" },
+        { "refId": "B", "expr": "sum(rate(otelcol_exporter_sent_log_records_total{exporter=~\".*grafanacloud.*\"}[$__rate_interval]))", "legendFormat": "logs" },
+        { "refId": "C", "expr": "sum(rate(otelcol_exporter_sent_spans_total{exporter=~\".*grafanacloud.*\"}[$__rate_interval]))", "legendFormat": "spans" }
+      ]
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Send failures (should stay 0)",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 29 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "cps", "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.001 }] } } },
+      "targets": [
+        { "refId": "A", "expr": "sum(rate(otelcol_exporter_send_failed_metric_points_total{exporter=~\".*grafanacloud.*\"}[$__rate_interval])) + sum(rate(otelcol_exporter_send_failed_log_records_total{exporter=~\".*grafanacloud.*\"}[$__rate_interval])) + sum(rate(otelcol_exporter_send_failed_spans_total{exporter=~\".*grafanacloud.*\"}[$__rate_interval]))", "legendFormat": "failed/s" }
+      ]
+    },
+    {
+      "id": 23,
+      "type": "timeseries",
+      "title": "Exporter queue size",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 29 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [
+        { "refId": "A", "expr": "sum by (data_type) (otelcol_exporter_queue_size{exporter=~\".*grafanacloud.*\"})", "legendFormat": "{{data_type}}" }
+      ]
     }
   ]
 }
