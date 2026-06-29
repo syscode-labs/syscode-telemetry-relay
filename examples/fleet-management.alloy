@@ -1,0 +1,26 @@
+// Optional: register this relay with Grafana Cloud Fleet Management so it shows
+// up as a connected, health-monitored collector under Connections > Collectors.
+//
+// Enable by loading this file ALONGSIDE config.alloy (point Alloy at a config
+// directory containing both, or append this block to config.alloy) and setting
+// FM_URL / FM_INSTANCE_ID / FM_TOKEN. Leave it out entirely to run FM-free.
+//
+// Values come from Grafana Cloud > Connections > Fleet Management > API tab:
+//   FM_URL          = the remotecfg URL (copy verbatim, e.g.
+//                     https://fleet-management-prod-023.grafana.net)
+//   FM_INSTANCE_ID  = your stack/instance ID (basic_auth username)
+//   FM_TOKEN        = a Cloud Access Policy token scoped fleet-management:read
+//                     (add :write only if you want cloud-pushed config)
+//
+// With no pipeline assigned in the cloud, the relay keeps its LOCAL config and
+// Fleet Management acts as inventory/health only.
+
+remotecfg {
+  url = sys.env("FM_URL")
+  basic_auth {
+    username = sys.env("FM_INSTANCE_ID")
+    password = sys.env("FM_TOKEN")
+  }
+  id             = "telemetry-relay"
+  poll_frequency = "1m"
+}
